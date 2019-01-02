@@ -1,5 +1,6 @@
 package com.example.coolweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -83,13 +84,13 @@ public class WeatherActivity extends AppCompatActivity {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather", null);
-        final String weatherId;
+        // final String weatherId;
         if (weatherString != null) {
             Weather weather = Utility.handleWeatherResponse(weatherString);
-            weatherId = weather.basic.weatherId;
+            // weatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
-            weatherId = getIntent().getStringExtra("weather_id");
+            String weatherId = getIntent().getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
             requestWeather(weatherId);
         }
@@ -97,6 +98,10 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                String weatherString = prefs.getString("weather", null);
+                Weather weather = Utility.handleWeatherResponse(weatherString);
+                String weatherId = weather.basic.weatherId;
                 requestWeather(weatherId);
             }
         });
@@ -163,7 +168,7 @@ public class WeatherActivity extends AppCompatActivity {
     private void showWeatherInfo(Weather weather){
         String cityName = weather.basic.cityName;
         String updateTime = weather.update.updateTime;
-        String degree = weather.now.temperature + "。C";
+        String degree = weather.now.temperature + "℃";
         String weatherInfo = weather.now.info;
 
         titleCity.setText(cityName);
@@ -191,6 +196,9 @@ public class WeatherActivity extends AppCompatActivity {
         carWashText.setText("洗车指数：可以");
         sportText.setText("适合户外");
         weatherLayout.setVisibility(View.VISIBLE);
+
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
     /**
